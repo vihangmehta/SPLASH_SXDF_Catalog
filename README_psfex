@@ -1,0 +1,22 @@
+1.) Run SExtractor on the original images to create LDAC catalogs. Here's the SExtractor parameter file is critical -- you need to have a certain number of parameters defined for PSFEx to work. In the attached param_psfex.sex file, it is the first 9 that are critical, the rest I've added for completeness and other use (see step 2).
+	
+	shell command: sextractor <sci_image> -c config/config_psfex.sex -PARAMETERS_NAME config/param_psfex.sex -CATALOG_NAME <catalog_name> -CATALOG_TYPE FITS_LDAC -WEIGHT_TYPE MAP_WEIGHT -WEIGHT_IMAGE <wht_image> -MAG_ZEROPOINT <zeropoint>
+	config files attached: config_psfex.sex, param_psfex.sex
+	e.g., sextractor mosaic_hsc_r.img.fits -c config/config_psfex.sex -PARAMETERS_NAME config/param_psfex.sex -CATALOG_NAME mosaic_hsc_r.ldac -CATALOG_TYPE FITS_LDAC -WEIGHT_TYPE MAP_WEIGHT -WEIGHT_IMAGE mosaic_hsc_r.wht.fits -MAG_ZEROPOINT 30
+
+2.) We wanted to ensure that we only select point-like objects for measuring the PSF. For this, we make a cut in the magnitude (MAG_AUTO) vs. half-light radius plot identifying the locus of bright, point-like objects that are not saturated. See figure (mosaic_hsc_z.stars.png) for reference.
+
+3a.) With the LDAC catalog of only the unsaturated, point-like objects, now we run PSFEx. We preferred going with the PIXEL basis to get the most accurate PSFs and it also ended up saving some computation time. I also recall there being some artifacts with the parametric basis and it being highly sensitive to some of the config parameters. The XML file PSFEx creates contains the best-fit Moffat profile parameters for the PSFs, which are quite useful in figuring out the next step. (The style file for the XML is in the PSFEx config folder, and I had to edit the XML file to point it to its location for it to load properly)
+
+	shell command: psfex <catalog_name> -c config/config.psfex -BASIS_TYPE PIXEL -PSF_SIZE 101,101 -PSF_DIR <psf_directory> -WRITE_XML Y -XML_NAME <xml_name> -CHECKIMAGE_NAME <chk_img> -CHECKPLOT_NAME <chk_plt>
+	config files attached: config.psfex
+	e.g., psfex mosaic_hsc_r.stars.ldac -c config/config.psfex -BASIS_TYPE PIXEL -PSF_SIZE 101,101 -PSF_DIR psfex/orig/ -WRITE_XML Y -XML_NAME psfex_hsc_r.xml -CHECKIMAGE_NAME psfex/orig/chi.fits,psfex/orig/proto.fits,psfex/orig/samp.fits,psfex/orig/resi.fits,psfex/orig/snap.fits -CHECKPLOT_NAME psfex/orig/plots/selfwhm,psfex/orig/plots/fwhm,psfex/orig/plots/ellipticity,psfex/orig/plots/counts,psfex/orig/plots/countfrac,psfex/orig/plots/chi2,psfex/orig/plots/resi
+
+3b.) With the PSFs in hand, you can choose what you want the homogenized PSF to be. The "HOMOPSF_PARAMS" keyword specifies the PSF (Moffat profile) you want to homogenize to. I used the parameters from the XML file to choose the "average" PSF as our target PSF. Keep in mind the FWHM parameter for "HOMOPSF_PARAMS" is in pixels (not arcseconds). Now, you'll have to run PSFEx again on the same catalogs and settings but now asking it to make the convolution kernels.
+
+	shell command: psfex <catalog_name> -c config/config.psfex -BASIS_TYPE PIXEL -PSF_SIZE 101,101 -PSF_DIR <psf_directory> -HOMOBASIS_TYPE GAUSS-LAGUERRE -HOMOPSF_PARAMS 4.67,2.8 -HOMOKERNEL_DIR <kernel_dir> -WRITE_XML Y -XML_NAME <xml_name> -CHECKIMAGE_NAME <chk_img> -CHECKPLOT_NAME <chk_plt>
+
+4a.) Convolve the original images with the convolution kernels. Pick your favorite code for this. I experimented with AstroPy, SciPy but ended up going with OpenCV for its speed and memory optimization.
+
+4b.) Repeat step 1 through 3a. Now, you can compare the PSFs before and after the homogenization process.
+

@@ -1,0 +1,36 @@
+PSF Homogenization:
+
+ - Make catalogs:                         mk_star_cats.py --orig --sex
+ - Select stars:                          mk_star_cats.py --orig --cut [--manual]
+ - Run PSFEx:                             mk_psfs.py --orig-pixel [--orig-gauss]
+ - (DEPRECATED) Make Kernels using IRAF:  mk_kernels.py
+ - Convolve the images using the kernels: mk_convolve.py --conv_pixel [--conv_gauss]
+ - Make new catalogs and select stars:    mk_star_cats.py --pixel --sex --cut
+ - Run PSFEx again:                       mk_psfs.py --conv-pixel [--conv-gauss]
+ - Check PSFEx output:                    chk_psfs.py
+ - Manually fit a Moffat:                 moffat.py
+
+Final catalog creation:
+
+- Detection image:                        mk_det_image.py
+- Make masks:                             mk_masks.py
+- Convolve with PSFs:                     mk_convolve.py --pixel [--gauss]
+- Make cutouts:                           mk_cutouts.py --det --orig --pixel
+- Run SEx to make SEGMAP:                 mk_cats.py --seg
+- Run SEx to filter catalogs:             mk_cats.py --sex
+- Make Final catalog:                     mk_final_cat.py
+- Check final catalog:                    chk_final_cat.py
+
+Error Analysis:
+
+ - Pad SEGMAP and MASKS:                  mk_sky_errors.py (setup_segmap,setup_mskmap)
+ - Make random sky apers:                 mk_sky_errors.py (mk_sky_apers)
+ - Measure photometry on sky apers:       mk_sky_errors.py (mk_sky_phot)
+ - Make SEx errors:                       mk_sex_errors.py
+ - Binned error analysis:                 calc_errors.py
+ - Fix SEx errors:                        fix_errors.py
+ - Make check plots:                      chk_errors.py
+
+
+ To-do:
+
