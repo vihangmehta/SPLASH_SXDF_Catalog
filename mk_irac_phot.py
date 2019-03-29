@@ -95,13 +95,13 @@ def rebin_PRFs(indir,outdir):
 
 def mk_cutouts(i,j,ra,dec,det,det_hdr,seg,seg_hdr,img,img_hdr,rms,rms_hdr,PRF_summary):
 
-    # _det,_hdr = extract_cutout(det,det_hdr,ra,dec,cutout_dim015)
-    # _det = rebin(_det,4,mode='sum')
-    # _hdr['CRPIX1'] = (_hdr['CRPIX1'] - 0.5)/4. + 0.5
-    # _hdr['CRPIX2'] = (_hdr['CRPIX2'] - 0.5)/4. + 0.5
-    # _hdr['CD1_1'] = -0.6/3600.
-    # _hdr['CD2_2'] = +0.6/3600.
-    # fitsio.writeto(os.path.join(cwd,"inp_fits/det_%i_%i.img.fits"%(j,i)),data=_det,header=_hdr,overwrite=True)
+    _det,_hdr = extract_cutout(det,det_hdr,ra,dec,cutout_dim015)
+    _det = rebin(_det,4,mode='sum')
+    _hdr['CRPIX1'] = (_hdr['CRPIX1'] - 0.5)/4. + 0.5
+    _hdr['CRPIX2'] = (_hdr['CRPIX2'] - 0.5)/4. + 0.5
+    _hdr['CD1_1'] = -0.6/3600.
+    _hdr['CD2_2'] = +0.6/3600.
+    fitsio.writeto(os.path.join(cwd,"inp_fits/det_%i_%i.img.fits"%(j,i)),data=_det,header=_hdr,overwrite=True)
 
     _seg,_hdr = extract_cutout(seg,seg_hdr,ra,dec,cutout_dim015)
     _seg = _seg.astype(">i4")
@@ -113,29 +113,29 @@ def mk_cutouts(i,j,ra,dec,det,det_hdr,seg,seg_hdr,img,img_hdr,rms,rms_hdr,PRF_su
     _hdr['CD2_2'] = +0.6/3600.
     fitsio.writeto(os.path.join(cwd,"inp_fits/det_%i_%i.seg.fits"%(j,i)),data=_seg,header=_hdr,overwrite=True)
 
-    # for filt in useful.filters["irac"]:
+    for filt in useful.filters["irac"]:
 
-    #     # IRAC SCI image
-    #     _img,_hdr = extract_cutout(img[filt],img_hdr[filt],ra,dec,cutout_dim060)
-    #     fitsio.writeto(os.path.join(cwd,"inp_fits/irac_ch%s_%i_%i.img.fits"%(filt,j,i)),data=_img,header=_hdr,overwrite=True)
+        # IRAC SCI image
+        _img,_hdr = extract_cutout(img[filt],img_hdr[filt],ra,dec,cutout_dim060)
+        fitsio.writeto(os.path.join(cwd,"inp_fits/irac_ch%s_%i_%i.img.fits"%(filt,j,i)),data=_img,header=_hdr,overwrite=True)
 
-    #     # IRAC PRF summary file
-    #     wcs = WCS(_hdr)
-    #     PRFx,PRFy = wcs.all_world2pix(PRF_summary[filt]["ra"],PRF_summary[filt]["dec"],1)
-    #     dx = np.max(np.diff(np.sort(np.unique(PRFx))))
-    #     dy = np.max(np.diff(np.sort(np.unique(PRFx))))
-    #     cond = (-dx/2.<PRFx) & (PRFx<_img.shape[0]+dx/2.) & (-dy/2.<PRFy) & (PRFy<_img.shape[1]+dy/2.)
+        # IRAC PRF summary file
+        wcs = WCS(_hdr)
+        PRFx,PRFy = wcs.all_world2pix(PRF_summary[filt]["ra"],PRF_summary[filt]["dec"],1)
+        dx = np.max(np.diff(np.sort(np.unique(PRFx))))
+        dy = np.max(np.diff(np.sort(np.unique(PRFx))))
+        cond = (-dx/2.<PRFx) & (PRFx<_img.shape[0]+dx/2.) & (-dy/2.<PRFy) & (PRFy<_img.shape[1]+dy/2.)
 
-    #     name = np.array(["PRFs.rb_060/"+x.replace(".fits",".rb_060.fits") for x in PRF_summary[filt]["name"][cond]],dtype="|S80")
-    #     xc   = PRFx[cond]
-    #     yc   = PRFy[cond]
+        name = np.array(["PRFs.rb_060/"+x.replace(".fits",".rb_060.fits") for x in PRF_summary[filt]["name"][cond]],dtype="|S80")
+        xc   = PRFx[cond]
+        yc   = PRFy[cond]
 
-    #     _PRF_summary = np.array(zip(name,xc,yc),dtype=[("name","|S80"),("x",float),("y",float)])
-    #     np.savetxt(os.path.join(cwd,"inp_fits/irac_ch%s_%i_%i.PRF.txt"%(filt,j,i)),_PRF_summary,fmt="%s%10.4f%10.4f",header="%s%10s%10s"%("Name","X","Y"))
+        _PRF_summary = np.array(zip(name,xc,yc),dtype=[("name","|S80"),("x",float),("y",float)])
+        np.savetxt(os.path.join(cwd,"inp_fits/irac_ch%s_%i_%i.PRF.txt"%(filt,j,i)),_PRF_summary,fmt="%s%10.4f%10.4f",header="%s%10s%10s"%("Name","X","Y"))
 
-    #     # IRAC RMS map
-    #     _rms,_hdr = extract_cutout(rms[filt],rms_hdr[filt],ra,dec,cutout_dim060)
-    #     fitsio.writeto(os.path.join(cwd,"inp_fits/irac_ch%s_%i_%i.rms.fits"%(filt,j,i)),data=_rms,header=_hdr,overwrite=True)
+        # IRAC RMS map
+        _rms,_hdr = extract_cutout(rms[filt],rms_hdr[filt],ra,dec,cutout_dim060)
+        fitsio.writeto(os.path.join(cwd,"inp_fits/irac_ch%s_%i_%i.rms.fits"%(filt,j,i)),data=_rms,header=_hdr,overwrite=True)
 
 def setup_iraclean():
 
